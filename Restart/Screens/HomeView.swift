@@ -14,9 +14,7 @@ struct HomeView: View {
             Text("Home")
                 .font(.largeTitle)
             Button(action: {
-                print("yo")
                 isOnboardingViewActive = true
-                //SOME ACTION
             }) {
                 Text("Restart")
             }
