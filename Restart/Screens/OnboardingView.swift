@@ -13,7 +13,10 @@ struct OnboardingView: View {
     @State private var buttonWidth: Double = UIScreen.main.bounds.width - 80
     @State private var buttonOffset: CGFloat = 0
     @State private var isAnimating: Bool = false
+    @State private var imageOffset: CGSize = CGSize(width: 0, height: 0)
+    let hapticFeedback = UINotificationFeedbackGenerator()
     
+
     var body: some View {
         ZStack {
             Color("ColorBlue")
@@ -41,12 +44,39 @@ struct OnboardingView: View {
                 //MARK: - center
                 ZStack {
                     CircleGroupView(shapeColor: .white, shapeOpacity: 0.2)
+                        .offset(x: imageOffset.width * -1)
+                        .blur(radius: abs(imageOffset.width/2))
+                        .animation(.easeOut(duration: 1), value: imageOffset)
                     Image("character-1")
                         .resizable()
                         .scaledToFit()
                         .opacity(isAnimating ? 1 : 0)
                         .animation(.easeOut, value: isAnimating)
+                        .offset(x: imageOffset.width * 1.8, y: 0)
+                        .rotationEffect(.degrees(imageOffset.width/20))
+                        .gesture(
+                            DragGesture()
+                                .onChanged({ gesture in
+                                    if abs(imageOffset.width) <= 150 {
+                                        imageOffset = gesture.translation
+                                    }
+                                })
+                                .onEnded({_ in
+                                    imageOffset = .zero
+                                })
+                        )
+                        .animation(.easeOut(duration: 0.5), value: imageOffset)
                 }
+                .overlay(
+                Image(systemName: "arrow.left.and.right.circle")
+                    .font(.system(size: 44, weight: .ultraLight))
+                    .foregroundColor(.white)
+                    .offset(y:50)
+                    .opacity(isAnimating ? 1 : 0)
+                    .animation(.easeOut(duration: 1).delay(2), value: isAnimating)
+                , alignment: .bottom
+                )
+                Spacer()
                 //MARK: - footer
                 ZStack {
                     Capsule()
@@ -87,11 +117,14 @@ struct OnboardingView: View {
                                 .onEnded({_ in
                                     withAnimation(.easeOut(duration: 0.4)){
                                         if buttonOffset > buttonWidth/2 {
+                                            hapticFeedback.notificationOccurred(.success)
+                                            playSound(sound: "chimeup", type: "mp3")
                                             buttonOffset = buttonWidth-80
                                             isOnboardingViewActive = false
                                             
                                         } else {
-                                        buttonOffset = 0
+                                            buttonOffset = 0
+                                            hapticFeedback.notificationOccurred(.warning)
                                         }
                                     }
                                 })
@@ -108,7 +141,8 @@ struct OnboardingView: View {
         } //End of zstack
         .onAppear {
             isAnimating = true
-        }
+        }.preferredColorScheme(.dark
+        )
     }
 }
 

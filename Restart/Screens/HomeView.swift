@@ -54,6 +54,7 @@ struct HomeView: View {
             Spacer()
         }.onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now()+0.5) {
+                playSound(sound: "success", type: "m4a")
                 isAnimating = true
             }
         }
